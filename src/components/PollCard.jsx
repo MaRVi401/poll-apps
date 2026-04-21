@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
+import { RotateCcw } from 'lucide-react';
 
-export default function PollCard({ poll, options, onVote }) {
-  // Hitung total suara untuk persentase
+export default function PollCard({ poll, options, onVote, onReset }) {
   const totalVotes = options.reduce((acc, opt) => acc + opt.votes_count, 0);
 
   return (
@@ -34,7 +34,19 @@ export default function PollCard({ poll, options, onVote }) {
           );
         })}
       </div>
-      <p className="mt-4 text-sm text-gray-400 text-center">{totalVotes} suara terkumpul</p>
+
+      {/* Bagian Footer Baru: Menampilkan jumlah suara dan tombol reset */}
+      <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+        <p className="text-sm text-gray-400">{totalVotes} suara terkumpul</p>
+        
+        <button 
+          onClick={onReset}
+          className="flex items-center gap-2 text-sm font-medium text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+        >
+          <RotateCcw size={16} />
+          Reset
+        </button>
+      </div>
     </div>
   );
 }
