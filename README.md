@@ -1,16 +1,176 @@
-# React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 🗳️ CodesMile Poll App
 
-Currently, two official plugins are available:
+Aplikasi polling real-time berbasis web menggunakan **React + Vite + Tailwind CSS v4 + Supabase**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Pengguna dapat melakukan voting secara langsung dan melihat hasil persentase secara **real-time**, serta tersedia fitur **reset polling** untuk mengatur ulang jumlah suara.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Tech Stack
 
-## Expanding the ESLint configuration
+- ⚛️ React (Frontend)
+- ⚡ Vite (Build Tool)
+- 🎨 Tailwind CSS v4 (Styling)
+- 🟢 Supabase (Backend & Real-time Database)
+- 🎬 Framer Motion (Animasi)
+- 🎯 Lucide React (Icons)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## ✨ Fitur Utama
+
+- ✅ Voting polling secara real-time
+- ✅ Persentase hasil otomatis
+- ✅ Animasi progress bar
+- ✅ Reset polling (kembali ke 0)
+- ✅ Sinkronisasi data realtime (multi-user)
+- ✅ UI modern dengan Tailwind v4
+
+---
+
+## 📦 Instalasi & Setup
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/username/poll-apps.git
+cd poll-apps
+````
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Setup Environment Variables
+
+Buat file `.env` di root project:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
+
+### 4. Jalankan Aplikasi
+
+```bash
+npm run dev
+```
+
+Akses di browser:
+
+```
+http://localhost:5173
+```
+
+---
+
+## 🗄️ Struktur Database (Supabase)
+
+### 1. Tabel `polls`
+
+| Field      | Type      |
+| ---------- | --------- |
+| id         | uuid (PK) |
+| question   | text      |
+| created_at | timestamp |
+
+---
+
+### 2. Tabel `options`
+
+| Field       | Type            |
+| ----------- | --------------- |
+| id          | uuid (PK)       |
+| poll_id     | uuid (FK)       |
+| option_text | text            |
+| votes_count | int (default 0) |
+
+---
+
+## 🔁 Fitur Reset Polling
+
+Fitur reset akan:
+
+* Mengubah semua `votes_count` menjadi **0**
+* Berlaku untuk semua opsi dalam 1 polling
+* Update secara **real-time ke semua user**
+
+---
+
+## 🎨 Konfigurasi Tailwind CSS v4
+
+Project ini menggunakan **Tailwind v4 (CSS-first)**
+
+### 📁 `src/index.css`
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #aa3bff;
+}
+```
+
+### ⚙️ `vite.config.js`
+
+```js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+})
+```
+
+---
+
+## ⚠️ Catatan Penting
+
+* Error `Unknown at rule @theme` di VS Code **bukan error fatal**
+* Itu hanya warning dari linter CSS
+* Bisa dihilangkan dengan:
+
+`.vscode/settings.json`
+
+```json
+{
+  "css.lint.unknownAtRules": "ignore"
+}
+```
+
+---
+
+## 📁 Struktur Project
+
+```
+poll-apps/
+├── src/
+│   ├── components/
+│   │   └── PollCard.jsx
+│   ├── lib/
+│   │   └── supabase.js
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
+├── .env
+├── package.json
+├── vite.config.js
+└── README.md
+```
+
+---
+
+## 👨‍💻 Author
+
+Dibuat oleh ❤️
+**Ahmad Yassin Hasan Al-bana**
+
+---
+
+## 📜 License
+
+Free to use untuk pembelajaran & pengembangan kolaboratif 🚀
+
