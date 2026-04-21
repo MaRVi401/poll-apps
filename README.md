@@ -33,7 +33,7 @@ Pengguna dapat melakukan voting secara langsung dan melihat hasil persentase sec
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/username/poll-apps.git
+git clone https://github.com/MaRVi401/poll-apps.git
 cd poll-apps
 ````
 
