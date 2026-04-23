@@ -1,95 +1,77 @@
 import { motion } from 'framer-motion';
-import { RotateCcw, User } from 'lucide-react';
+import { Share2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function PollCard({ poll, options, fetchPollData }) {
-  // 1. Hitung total votes dari data options yang dikirim props
   const totalVotes = options.reduce((acc, opt) => acc + opt.votes_count, 0);
 
-  // 2. Fungsi Utama Voting (Requirement R2)
   const handleVote = async (optionId) => {
-    const voterName = prompt("Masukkan nama lengkap Anda untuk memberikan suara:");
-    
-    // Validasi sederhana
-    if (!voterName || voterName.trim() === "") {
-      return alert("Nama wajib diisi untuk memberikan suara!");
-    }
+    // 1. Cek Sesi (Frontend)
+    const alreadyVoted = sessionStorage.getItem(`voted_${poll.id}`);
+    if (alreadyVoted) return alert("Anda sudah memberikan suara pada polling ini!");
+
+    const voterName = prompt("Masukkan Nama Lengkap Anda:");
+    if (!voterName || voterName.trim() === "") return alert("Nama wajib diisi!");
+
+    const cleanName = voterName.trim();
 
     try {
-      // Insert ke tabel transaksi 'votes'
-      const { error } = await supabase
+      // 2. Cek Nama di Database (Security Rules)
+      const { data: existingVoter, error: checkError } = await supabase
         .from("votes")
-        .insert([
-          { 
-            poll_id: poll.id, 
-            option_id: optionId, 
-            voter_name: voterName 
-          }
-        ]);
+        .select("id") // Cukup ambil ID saja untuk efisiensi
+        .eq("poll_id", poll.id)
+        .eq("voter_name", cleanName)
+        .maybeSingle(); // Pakai maybeSingle agar tidak error jika data kosong
 
-      if (error) throw error;
+      if (checkError) throw checkError;
 
-      alert(`Terima kasih ${voterName}, suara Anda berhasil dikirim!`);
-      
-      // Refresh data agar progress bar langsung update
-      if (fetchPollData) fetchPollData();
-      
-    } catch (error) {
-      console.error("Error voting:", error.message);
-      alert("Gagal mengirim suara. Silakan coba lagi.");
+      if (existingVoter) {
+        return alert(`Nama "${cleanName}" sudah digunakan. Gunakan nama lain!`);
+      }
+
+      // 3. Eksekusi Vote
+      const { error: insertError } = await supabase
+        .from("votes")
+        .insert([{
+          poll_id: poll.id,
+          option_id: optionId,
+          voter_name: cleanName
+        }]);
+
+      if (insertError) throw insertError;
+
+      // 4. Kunci Sesi & Feedback
+      sessionStorage.setItem(`voted_${poll.id}`, "true");
+      alert("Voting Berhasil!");
+      fetchPollData();
+
+    } catch (err) {
+      console.error("Error saat voting:", err.message);
+      alert("Terjadi kesalahan teknis. Coba lagi nanti.");
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 mx-auto">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-800">{poll.question}</h2>
-        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-          <User size={12} /> Dibuat oleh: {poll.created_by || 'Anonim'}
-        </p>
-      </div>
-      
-      <div className="space-y-4">
-        {options.map((option) => {
-          const percentage = totalVotes === 0 ? 0 : Math.round((option.votes_count / totalVotes) * 100);
-          
+    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+      <h2 className="text-xl font-bold mb-6 text-slate-800">{poll.question}</h2>
+      <div className="space-y-3">
+        {options.map(opt => {
+          const pct = totalVotes === 0 ? 0 : Math.round((opt.votes_count / totalVotes) * 100);
           return (
-            <div key={option.id} className="relative">
-              <button
-                onClick={() => handleVote(option.id)}
-                className="w-full text-left p-4 rounded-xl border border-gray-200 hover:border-blue-400 transition-all relative overflow-hidden group cursor-pointer"
-              >
-                {/* Background Progress Bar */}
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${percentage}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                  className="absolute left-0 top-0 bottom-0 bg-blue-50 -z-10"
-                />
-                
-                <div className="flex justify-between items-center z-10">
-                  <span className="font-medium text-gray-700 group-hover:text-blue-700 transition-colors">
-                    {option.option_text}
-                  </span>
-                  <div className="text-right">
-                    <span className="block text-sm font-bold text-blue-600">{percentage}%</span>
-                    <span className="block text-[10px] text-gray-400">{option.votes_count} suara</span>
-                  </div>
-                </div>
-              </button>
-            </div>
+            <button key={opt.id} onClick={() => handleVote(opt.id)} className="w-full text-left p-4 rounded-2xl border border-slate-100 hover:border-indigo-300 relative overflow-hidden group cursor-pointer transition-all">
+              <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1 }} className="absolute inset-0 bg-indigo-50 -z-10" />
+              <div className="flex justify-between items-center z-10 font-bold">
+                <span className="text-slate-600">{opt.option_text}</span>
+                <span className="text-indigo-600">{pct}%</span>
+              </div>
+            </button>
           );
         })}
       </div>
-
-      <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
-        <div className="flex flex-col">
-          <p className="text-sm font-bold text-gray-800">{totalVotes}</p>
-          <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Total Suara</p>
-        </div>
-        
-        {/* Tombol Reset biasanya diarahkan ke Admin Panel/Dashboard di SaaS */}
-        <p className="text-[10px] text-gray-300 italic">ID: {poll.id.substring(0,8)}...</p>
+      <div className="mt-6 pt-4 border-t flex justify-between items-center">
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{totalVotes} Total Suara</span>
+        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}?poll=${poll.id}`); alert("Link disalin!"); }} className="p-2 hover:bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-full cursor-pointer"><Share2 size={18} /></button>
       </div>
     </div>
   );
