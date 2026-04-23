@@ -1,176 +1,109 @@
+# 🗳️ CodesMile Poll App (SaaS Edition)
 
-# 🗳️ CodesMile Poll App
+Aplikasi polling real-time berbasis web yang dibangun dengan arsitektur **SaaS**. Pengguna tidak hanya bisa melakukan voting, tetapi juga dapat membuat polling mereka sendiri, mendapatkan kredensial admin, dan memantau pemilih secara transparan.
 
-Aplikasi polling real-time berbasis web menggunakan **React + Vite + Tailwind CSS v4 + Supabase**.
-
-Pengguna dapat melakukan voting secara langsung dan melihat hasil persentase secara **real-time**, serta tersedia fitur **reset polling** untuk mengatur ulang jumlah suara.
-
----
-
-## 🚀 Tech Stack
-
-- ⚛️ React (Frontend)
-- ⚡ Vite (Build Tool)
-- 🎨 Tailwind CSS v4 (Styling)
-- 🟢 Supabase (Backend & Real-time Database)
-- 🎬 Framer Motion (Animasi)
-- 🎯 Lucide React (Icons)
+> **Status Proyek:** Development (Semester 6 - PBL Polindra)
 
 ---
 
 ## ✨ Fitur Utama
 
-- ✅ Voting polling secara real-time
-- ✅ Persentase hasil otomatis
-- ✅ Animasi progress bar
-- ✅ Reset polling (kembali ke 0)
-- ✅ Sinkronisasi data realtime (multi-user)
-- ✅ UI modern dengan Tailwind v4
+- 🏗️ **SaaS Architecture:** Siapapun bisa membuat polling mandiri dengan `admin_credential` unik.
+- ✅ **Transparent Voting:** Pemilih wajib memasukkan nama sebelum voting untuk menghindari kecurangan.
+- 🛠️ **Admin Dashboard:** Fitur moderasi untuk menghapus suara atau mereset polling berdasarkan token admin.
+- 🔄 **Real-time Sync:** Sinkronisasi data instan menggunakan Supabase Realtime (Broadcasting & Presence).
+- 📊 **Auto-Calculation:** Persentase suara dihitung secara otomatis via **PostgreSQL Triggers**.
+- 🐳 **Dockerized Backend:** Lingkungan pengembangan lokal yang konsisten menggunakan Supabase CLI & Docker.
 
 ---
 
-## 📦 Instalasi & Setup
+## 🚀 Tech Stack
 
-### 1. Clone Repository
+- **Frontend:** React + Vite
+- **Styling:** Tailwind CSS v4 (Next Generation CSS Engine)
+- **Backend/Database:** Supabase (PostgreSQL)
+- **DevOps:** Docker, Supabase CLI
+- **Animation:** Framer Motion
+- **Icons:** Lucide React
+
+---
+
+## 📦 Instalasi & Setup (Tim Developer)
+
+### 1. Clone & Install
 ```bash
 git clone https://github.com/MaRVi401/poll-apps.git
 cd poll-apps
-````
-
-### 2. Install Dependencies
-
-```bash
 npm install
 ```
 
+### 2. Jalankan Backend Lokal (Docker)
+Pastikan Docker Desktop sudah aktif, lalu jalankan:
+```bash
+npx supabase start
+```
+Perintah ini akan otomatis menjalankan migrasi dan membentuk tabel di database lokal Anda.
+
 ### 3. Setup Environment Variables
-
-Buat file `.env` di root project:
-
+Buat file `.env` dan masukkan kredensial yang muncul di terminal setelah perintah `start`:
 ```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_anon_key
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_ANON_KEY=your_local_anon_key
 ```
 
-### 4. Jalankan Aplikasi
-
+### 4. Jalankan Frontend
 ```bash
 npm run dev
 ```
 
-Akses di browser:
+---
 
-```
-http://localhost:5173
-```
+## 🗄️ Skema Database
+
+
+
+### 1. Tabel `polls` (Owners)
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | uuid (PK) | ID unik polling |
+| `question` | text | Pertanyaan polling |
+| `admin_credential` | text | Token rahasia untuk akses fitur admin |
+| `created_by` | text | Nama pembuat polling |
+
+### 2. Tabel `options` (Choices)
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | uuid (PK) | ID unik opsi |
+| `poll_id` | uuid (FK) | Relasi ke tabel polls |
+| `option_text` | text | Teks pilihan |
+| `votes_count` | int | Total suara (Auto-update via Trigger) |
+
+### 3. Tabel `votes` (Transaction/Logs)
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | uuid (PK) | ID transaksi |
+| `option_id` | uuid (FK) | Opsi yang dipilih |
+| `voter_name` | text | Nama lengkap pemilih (R2) |
 
 ---
 
-## 🗄️ Struktur Database (Supabase)
+## 🛠️ Alur Kerja Migrasi (Database Versioning)
 
-### 1. Tabel `polls`
-
-| Field      | Type      |
-| ---------- | --------- |
-| id         | uuid (PK) |
-| question   | text      |
-| created_at | timestamp |
+Project ini menggunakan **Supabase Migrations**. Jika Anda melakukan perubahan struktur tabel:
+1. Lakukan perubahan di Dashboard Lokal (`localhost:54323`).
+2. Jalankan `npx supabase db diff --local -f initial_schema` untuk membuat file migrasi.
+3. Push file di folder `supabase/migrations/` ke GitHub agar tim lain bisa sinkronisasi.
+4. Tim lain cukup melakukan `git pull` dan `npx supabase db reset`.
 
 ---
 
-### 2. Tabel `options`
+## 👨‍💻 Developer & Tim
 
-| Field       | Type            |
-| ----------- | --------------- |
-| id          | uuid (PK)       |
-| poll_id     | uuid (FK)       |
-| option_text | text            |
-| votes_count | int (default 0) |
+- CodesMile
 
----
 
-## 🔁 Fitur Reset Polling
-
-Fitur reset akan:
-
-* Mengubah semua `votes_count` menjadi **0**
-* Berlaku untuk semua opsi dalam 1 polling
-* Update secara **real-time ke semua user**
-
----
-
-## 🎨 Konfigurasi Tailwind CSS v4
-
-Project ini menggunakan **Tailwind v4 (CSS-first)**
-
-### 📁 `src/index.css`
-
-```css
-@import "tailwindcss";
-
-@theme {
-  --color-accent: #aa3bff;
-}
-```
-
-### ⚙️ `vite.config.js`
-
-```js
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-})
-```
-
----
-
-## ⚠️ Catatan Penting
-
-* Error `Unknown at rule @theme` di VS Code **bukan error fatal**
-* Itu hanya warning dari linter CSS
-* Bisa dihilangkan dengan:
-
-`.vscode/settings.json`
-
-```json
-{
-  "css.lint.unknownAtRules": "ignore"
-}
-```
-
----
-
-## 📁 Struktur Project
-
-```
-poll-apps/
-├── src/
-│   ├── components/
-│   │   └── PollCard.jsx
-│   ├── lib/
-│   │   └── supabase.js
-│   ├── App.jsx
-│   ├── index.css
-│   └── main.jsx
-├── .env
-├── package.json
-├── vite.config.js
-└── README.md
-```
-
----
-
-## 👨‍💻 Author
-
-Dibuat oleh ❤️
-**Ahmad Yassin Hasan Al-bana**
 
 ---
 
 ## 📜 License
-
-Free to use untuk pembelajaran & pengembangan kolaboratif 🚀
-
+Distributed under the MIT License. See `LICENSE` for more information.
